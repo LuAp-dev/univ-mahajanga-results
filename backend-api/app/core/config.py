@@ -1,5 +1,6 @@
 # app/core/config.py
 from pydantic_settings import BaseSettings
+from typing import ClassVar
 from typing import List
 import os
 
@@ -22,5 +23,6 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        extra = "forbid"   # empêche les variables non déclarées
 
 settings = Settings()

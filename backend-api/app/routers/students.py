@@ -8,7 +8,6 @@ from app.models.result import ResultatFinal
 from app.schemas.result import StudentResultsResponse
 from app.core.security import get_current_student
 
-
 router = APIRouter()
 
 @router.get("/{student_id}/results", response_model=StudentResultsResponse)
@@ -17,36 +16,29 @@ async def get_student_results(
     db: Session = Depends(get_db),
     current_student: Student = Depends(get_current_student)
 ):
-    # Vérifier que l'étudiant peut accéder à ses propres résultats
     if current_student.id != student_id:
-        raise HTTPException(
-            status_code=403,
-            detail="Accès non autorisé"
-        )
-    
-    # Récupérer les résultats avec les jointures vers EC et Examen
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+
     results = db.query(ResultatFinal).filter(
-        ResultatFinal.etudiant_id == student_id
+        ResultatFinal.student_id == student_id
     ).options(
         joinedload(ResultatFinal.ec),
         joinedload(ResultatFinal.examen)
     ).all()
-    
-    # Transformer les résultats
-    results_response = []
-    for r in results:
-        results_response.append({
-            "id": r.id,
-            "note": r.note,
-            "decision": r.decision,
-            "statut": r.statut,
-            "jury_validated": r.jury_validated,
-            "ec_nom": r.ec.nom if r.ec else None,
-            "ec_code": r.ec.code if r.ec else None,
-            "examen_nom": r.examen.nom if r.examen else None
-        })
+
+    results_response = [{
+        "id": r.id,
+        "note": r.note,
+        "decision": r.decision,
+        "statut": r.statut,
+        "jury_validated": r.jury_validated,
+        "ec_nom": r.ec.nom if r.ec else None,
+        "ec_code": r.ec.code if r.ec else None,
+        "examen_nom": r.examen.nom if r.examen else None
+    } for r in results]
 
     overall_status = calculate_overall_status(results)
+    average = sum([r.note for r in results]) / len(results) if results else None
 
     return {
         "student": {
@@ -58,5 +50,6 @@ async def get_student_results(
             "is_active": current_student.is_active
         },
         "results": results_response,
-        "overall_status": overall_status
+        "overall_status": overall_status,
+        "average": average
     }

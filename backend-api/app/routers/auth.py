@@ -7,7 +7,11 @@ from app.database import get_db
 from app.schemas.student import LoginRequest, LoginResponse
 from app.models.student import Student
 from app.core.security import create_access_token
-from app.core.config import SECRET_KEY, ALGORITHM
+from app.core.config import settings
+
+SECRET_KEY = settings.JWT_SECRET_KEY
+ALGORITHM = settings.JWT_ALGORITHM
+
 
 router = APIRouter()
 
