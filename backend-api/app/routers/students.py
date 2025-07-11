@@ -1,11 +1,13 @@
-# app/routers/students.py
+from sqlalchemy.orm import joinedload
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.routers.auth import get_current_student
 from app.models.student import Student
 from app.models.result import ResultatFinal
 from app.schemas.result import StudentResultsResponse
 from app.core.security import get_current_student
+
 
 router = APIRouter()
 
@@ -22,32 +24,39 @@ async def get_student_results(
             detail="Accès non autorisé"
         )
     
-    # Récupérer les résultats
+    # Récupérer les résultats avec les jointures vers EC et Examen
     results = db.query(ResultatFinal).filter(
         ResultatFinal.etudiant_id == student_id
+    ).options(
+        joinedload(ResultatFinal.ec),
+        joinedload(ResultatFinal.examen)
     ).all()
     
-    # Calculer le statut global
+    # Transformer les résultats
+    results_response = []
+    for r in results:
+        results_response.append({
+            "id": r.id,
+            "note": r.note,
+            "decision": r.decision,
+            "statut": r.statut,
+            "jury_validated": r.jury_validated,
+            "ec_nom": r.ec.nom if r.ec else None,
+            "ec_code": r.ec.code if r.ec else None,
+            "examen_nom": r.examen.nom if r.examen else None
+        })
+
     overall_status = calculate_overall_status(results)
-    
+
     return {
-        "student": current_student,
-        "results": results,
+        "student": {
+            "id": current_student.id,
+            "matricule": current_student.matricule,
+            "nom": current_student.nom,
+            "prenom": current_student.prenom,
+            "sexe": current_student.sexe,
+            "is_active": current_student.is_active
+        },
+        "results": results_response,
         "overall_status": overall_status
     }
-
-def calculate_overall_status(results):
-    """Calculer le statut global de l'étudiant"""
-    if not results:
-        return "AUCUN_RESULTAT"
-    
-    decisions = [r.decision for r in results]
-    
-    if "exclus" in decisions:
-        return "EXCLUS"
-    elif "redoublant" in decisions:
-        return "REDOUBLANT"
-    elif "rattrapage" in decisions:
-        return "RATTRAPAGE"
-    else:
-        return "ADMIS"
