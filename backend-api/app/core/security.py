@@ -10,11 +10,12 @@ from app.models.student import Student
 
 security = HTTPBearer()
 
-def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=settings.jwt_access_token_expire_minutes)):
+def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+):
     to_encode = data.copy()
     expire = datetime.utcnow() + expires_delta
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 async def get_current_student(
     credentials: HTTPAuthorizationCredentials = Depends(security),
