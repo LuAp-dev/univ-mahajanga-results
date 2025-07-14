@@ -6,7 +6,7 @@ try:
         host='localhost',
         user='root',  # ou 'api_python'
         password='',  # ou votre mot de passe
-        database='nom_de_votre_base_laravel',
+        database='smartscol',
         charset='utf8mb4'
     )
     print("✅ Connexion MySQL réussie !")

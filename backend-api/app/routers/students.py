@@ -6,7 +6,9 @@ from app.routers.auth import get_current_student
 from app.models.student import Student
 from app.models.result import ResultatFinal
 from app.schemas.result import StudentResultsResponse
+from app.core.utils import calculate_overall_status
 from app.core.security import get_current_student
+
 
 router = APIRouter()
 
@@ -20,7 +22,7 @@ async def get_student_results(
         raise HTTPException(status_code=403, detail="Accès non autorisé")
 
     results = db.query(ResultatFinal).filter(
-        ResultatFinal.student_id == student_id
+        ResultatFinal.etudiant_id == student_id
     ).options(
         joinedload(ResultatFinal.ec),
         joinedload(ResultatFinal.examen)
@@ -34,7 +36,7 @@ async def get_student_results(
         "jury_validated": r.jury_validated,
         "ec_nom": r.ec.nom if r.ec else None,
         "ec_code": r.ec.code if r.ec else None,
-        "examen_nom": r.examen.type if r.examen else None
+        "examen_nom": r.examen.nom if r.examen else None
     } for r in results]
 
     overall_status = calculate_overall_status(results)
@@ -53,3 +55,4 @@ async def get_student_results(
         "overall_status": overall_status,
         "average": average
     }
+

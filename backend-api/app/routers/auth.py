@@ -17,22 +17,6 @@ router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-
-def get_current_student(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
-) -> Student:
-    try:
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
-        student_id = int(payload.get("sub"))
-    except (JWTError, ValueError):
-        raise HTTPException(status_code=401, detail="Token invalide")
-
-    student = db.query(Student).get(student_id)
-    if not student:
-        raise HTTPException(status_code=401, detail="Étudiant non trouvé")
-    return student
-
 @router.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
     # Rechercher l'étudiant
