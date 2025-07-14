@@ -15,24 +15,22 @@ ALGORITHM = settings.JWT_ALGORITHM
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-def get_current_student(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Student:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Token invalide",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+
+def get_current_student(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> Student:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        student_id: str = payload.get("sub")
-        if student_id is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    student = db.query(Student).filter(Student.id == int(student_id)).first()
-    if student is None:
-        raise credentials_exception
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        student_id = int(payload.get("sub"))
+    except (JWTError, ValueError):
+        raise HTTPException(status_code=401, detail="Token invalide")
+
+    student = db.query(Student).get(student_id)
+    if not student:
+        raise HTTPException(status_code=401, detail="Étudiant non trouvé")
     return student
 
 @router.post("/login", response_model=LoginResponse)
