@@ -33,10 +33,10 @@ async def get_student_results(
         "decision": r.decision,
         "statut": r.statut,
         "jury_validated": r.jury_validated,
-        "ec_nom": None,
-        "ec_code": r.ec.abr if r.ec else None,
-        "examen_nom": f"Examen {r.examen.id}" if r.examen else None
-    } for r in results]
+        "ec_nom": r.ec.nom if r.ec else None,
+        "ec_code": r.ec.abr if r.ec else None,  # pas 'code'
+        "examen_nom": r.examen.type if r.examen else None  # pas 'nom'
+} for r in results]
 
     overall_status = calculate_overall_status(results)
     average = sum([r.note for r in results]) / len(results) if results else None

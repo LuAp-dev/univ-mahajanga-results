@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -9,6 +9,7 @@ class Examen(Base):
     parcours_id = Column(Integer, ForeignKey("parcours.id"), nullable=True)
     duree = Column(Integer)
     note_eliminatoire = Column(Float, nullable=True)
+    type = Column(String(255))
 
     # Relation vers ResultatFinal
     resultats = relationship("ResultatFinal", back_populates="examen")
