@@ -10,7 +10,7 @@ class Result(BaseModel):
     decision: str
     statut: str
     jury_validated: bool
-    # ec_nom: Optional[str]
+    ec_nom: Optional[str]
     ec_code: Optional[str]
     examen_nom: Optional[str] = None
 
