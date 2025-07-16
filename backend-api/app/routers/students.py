@@ -34,8 +34,9 @@ async def get_student_results(
         "statut": r.statut,
         "jury_validated": r.jury_validated,
         "ec_nom": r.ec.nom if r.ec else None,
-        "ec_code": r.ec.abr if r.ec else None,  # pas 'code'
-        "examen_nom": r.examen.type if r.examen else None  # pas 'nom'
+        "ec_code": r.ec.abr if r.ec else None,
+        "ec_nom": r.ec.nom if r.ec else None,
+        "examen_nom": f"Session {r.examen.id}" if r.examen else None
 } for r in results]
 
     overall_status = calculate_overall_status(results)
