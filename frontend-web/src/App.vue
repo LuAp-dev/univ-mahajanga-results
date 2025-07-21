@@ -4,12 +4,21 @@ import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <div class="p-10 bg-gray-100 text-center">
-    <h1 class="text-4xl font-bold text-blue-500">SmartScol Frontend est prêt ! 🎉</h1>
-    <p class="text-lg text-gray-600 mt-4">Bienvenue sur votre interface Vue 3 + Tailwind</p>
-  </div>
-</template>
+  <header>
+    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
+    <div class="wrapper">
+      <HelloWorld msg="You did it!" />
+
+      <nav>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/about">About</RouterLink>
+      </nav>
+    </div>
+  </header>
+
+  <RouterView />
+</template>
 
 <style scoped>
 header {
