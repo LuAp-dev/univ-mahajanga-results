@@ -8,7 +8,7 @@
     <div v-else>
       <div v-for="ue in results" :key="ue.ue_nom" class="mb-6">
         <h3 class="text-xl font-semibold mb-2">
-          UE : {{ ue.ue_nom }} (Crédit : {{ ue.ue_credit }})
+          UE : {{ ue.ue_nom }} (Crédit : {{ ue.ue_credits }})
         </h3>
 
         <table class="w-full border border-gray-300 mb-4">
