@@ -8,12 +8,13 @@ from app.models.result import ResultatFinal
 from app.models.ec import EC
 from app.core.utils import calculate_overall_status
 from app.core.security import get_current_student
+from app.schemas.result import StudentResultsResponse
 from collections import defaultdict
 
 
 router = APIRouter()
 
-@router.get("/{student_id}/results")
+@router.get("/{student_id}/results", response_model=StudentResultsResponse)
 async def get_student_results(
     student_id: int,
     db: Session = Depends(get_db),

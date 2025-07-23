@@ -4,32 +4,26 @@ from typing import List, Optional
 from pydantic import BaseModel
 from typing import List, Optional
 
-class Result(BaseModel):
-    id: int
+class ECResult(BaseModel):
+    ec_nom: str
     note: float
-    decision: str
-    statut: str
-    jury_validated: bool
-    ec_nom: Optional[str]
-    ec_code: Optional[str]
-    examen_nom: Optional[str] = None
+    decision: Optional[str]
 
-    class Config:
-        orm_mode = True
+class UEResult(BaseModel):
+    ue_nom: str
+    ue_credit: float
+    ecs: List[ECResult]
 
 class StudentInfo(BaseModel):
     id: int
-    matricule: str
     nom: str
     prenom: str
-    sexe: str
+    matricule: str
+    sexe: Optional[str]
     is_active: bool
-
-    class Config:
-        orm_mode = True
 
 class StudentResultsResponse(BaseModel):
     student: StudentInfo
-    results: List[Result]
-    overall_status: str
-    average: Optional[float] = None
+    results: List[UEResult]
+    overall_status: Optional[str]
+    average: Optional[float]
