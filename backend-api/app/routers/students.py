@@ -1,14 +1,18 @@
 # app/routers/students.py
+from typing import Optional
 from sqlalchemy.orm import joinedload
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Query
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.models import examen
 from app.models.student import Student
 from app.models.result import ResultatFinal
 from app.models.ec import EC
 from app.core.utils import calculate_overall_status
 from app.core.security import get_current_student
 from app.schemas.result import StudentResultsResponse
+from app.models.examen import Examen
 from collections import defaultdict
 
 
@@ -17,6 +21,7 @@ router = APIRouter()
 @router.get("/{student_id}/results", response_model=StudentResultsResponse)
 async def get_student_results(
     student_id: int,
+    examen_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     current_student: Student = Depends(get_current_student)
 ):
@@ -46,7 +51,7 @@ async def get_student_results(
     for (ue_id, ue_nom, ue_credits), ec_list in grouped_results.items():
         ue_results.append({
             "ue_nom": ue_nom,
-            "ue_credits": ue_credits,
+            "ue_credit": ue_credits,
             "ecs": ec_list
         })
 
@@ -78,3 +83,19 @@ async def get_current_user_info(current_student: Student = Depends(get_current_s
         "is_active": current_student.is_active
     }
 
+@router.get("/{student_id}/examens")
+async def get_available_examens_for_student(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student)
+):
+    if current_student.id != student_id:
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+
+    examens_ids = db.query(ResultatFinal.examen_id).filter(
+        ResultatFinal.etudiant_id == student_id
+    ).distinct()
+
+    exams = db.query(Examen).filter(Examen.id.in_(examens_ids)).all()
+
+    return [{"id": e.id, "libelle": f"Session {e.id}"} for e in exams]
