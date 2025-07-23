@@ -1,23 +1,53 @@
+// router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { useAuthStore } from '@/stores/auth'
+
+const routes = [
+  {
+    path: '/',
+    redirect: '/dashboard',
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { requiresGuest: true },
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('@/views/Dashboard.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/results',
+    name: 'Results',
+    component: () => import('@/views/Results.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/login', // Redirige toute URL inconnue vers login
+  },
+]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-    },
-    {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
-    },
-  ],
+  history: createWebHistory(),
+  routes,
+})
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    // Route protégée mais pas connecté → redirige vers login
+    next({ name: 'Login' })
+  } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
+    // Page login accessible que si pas connecté → redirige dashboard
+    next({ name: 'Dashboard' })
+  } else {
+    next()
+  }
 })
 
 export default router
