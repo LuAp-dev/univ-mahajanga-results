@@ -7,6 +7,9 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.database import get_db
 from app.models.student import Student
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 security = HTTPBearer()
 
@@ -17,29 +20,23 @@ def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
-async def get_current_student(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
-):
+def get_current_student(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Student:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Token invalide ou expiré",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
     try:
-        payload = jwt.decode(credentials.credentials, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-        student_id: str = payload.get("sub")
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        student_id = payload.get("sub")
         if student_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token invalide"
-            )
+            raise credentials_exception
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalide"
-        )
-    
+        raise credentials_exception
+
     student = db.query(Student).filter(Student.id == int(student_id)).first()
     if student is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Étudiant non trouvé"
-        )
-    
+        raise credentials_exception
+
     return student

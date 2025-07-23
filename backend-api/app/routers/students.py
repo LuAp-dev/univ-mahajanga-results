@@ -1,3 +1,4 @@
+# app/routers/students.py
 from sqlalchemy.orm import joinedload
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -55,3 +56,13 @@ async def get_student_results(
         "average": average
     }
 
+@router.get("/me")
+async def get_current_user_info(current_student: Student = Depends(get_current_student)):
+    return {
+        "id": current_student.id,
+        "matricule": current_student.matricule,
+        "nom": current_student.nom,
+        "prenom": current_student.prenom,
+        "sexe": current_student.sexe,
+        "is_active": current_student.is_active
+    }

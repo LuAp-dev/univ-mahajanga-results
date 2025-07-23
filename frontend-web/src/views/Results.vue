@@ -16,9 +16,9 @@
         </thead>
         <tbody>
           <tr v-for="res in results" :key="res.id" class="text-center">
-            <td class="p-2">{{ res.nom_matiere }}</td>
+            <td class="p-2">{{ res.ec_nom }}</td>
             <td class="p-2">{{ res.note }}</td>
-            <td class="p-2">{{ res.credit }}</td>
+            <td class="p-2">{{ res.decision }}</td>
           </tr>
         </tbody>
       </table>
@@ -47,11 +47,11 @@ onMounted(async () => {
     const config = {
       headers: { Authorization: `Bearer ${authStore.accessToken}` },
     }
-    const response = await axios.get(
-      `http://localhost:8000/api/v1/students/${authStore.userId}/results`,
-      config,
-    )
-    results.value = response.data
+    const me = await axios.get('http://localhost:8000/api/v1/students/me', config)
+    const id = me.data.id
+    const response = await axios.get(`http://localhost:8000/api/v1/students/${id}/results`, config)
+    console.log(response.data)
+    results.value = response.data.results
     // eslint-disable-next-line no-unused-vars
   } catch (e) {
     error.value = 'Erreur de chargement des résultats'
