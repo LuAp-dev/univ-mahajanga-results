@@ -5,14 +5,15 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.student import Student
 from app.models.result import ResultatFinal
-from app.schemas.result import StudentResultsResponse
+from app.models.ec import EC
 from app.core.utils import calculate_overall_status
 from app.core.security import get_current_student
+from collections import defaultdict
 
 
 router = APIRouter()
 
-@router.get("/{student_id}/results", response_model=StudentResultsResponse)
+@router.get("/{student_id}/results")
 async def get_student_results(
     student_id: int,
     db: Session = Depends(get_db),
@@ -24,20 +25,29 @@ async def get_student_results(
     results = db.query(ResultatFinal).filter(
         ResultatFinal.etudiant_id == student_id
     ).options(
-        joinedload(ResultatFinal.ec),
+        joinedload(ResultatFinal.ec).joinedload(EC.ue),
         joinedload(ResultatFinal.examen)
     ).all()
 
-    results_response = [{
-        "id": r.id,
-        "note": r.note,
-        "decision": r.decision,
-        "statut": r.statut,
-        "jury_validated": r.jury_validated,
-        "ec_nom": r.ec.nom if r.ec else None,
-        "ec_code": r.ec.abr if r.ec else None,
-        "examen_nom": f"Session {r.examen.id}" if r.examen else None
-} for r in results]
+    # Grouper par UE
+    grouped_results = defaultdict(list)
+
+    for r in results:
+        if r.ec and r.ec.ue:
+            ue_key = (r.ec.ue.id, r.ec.ue.nom, r.ec.ue.credits)
+            grouped_results[ue_key].append({
+                "ec_nom": r.ec.nom,
+                "note": r.note,
+                "decision": r.decision
+            })
+
+    ue_results = []
+    for (ue_id, ue_nom, ue_credits), ec_list in grouped_results.items():
+        ue_results.append({
+            "ue_nom": ue_nom,
+            "ue_credits": ue_credits,
+            "ecs": ec_list
+        })
 
     overall_status = calculate_overall_status(results)
     average = sum([r.note for r in results]) / len(results) if results else None
@@ -51,7 +61,7 @@ async def get_student_results(
             "sexe": current_student.sexe,
             "is_active": current_student.is_active
         },
-        "results": results_response,
+        "results": ue_results,
         "overall_status": overall_status,
         "average": average
     }
@@ -66,3 +76,4 @@ async def get_current_user_info(current_student: Student = Depends(get_current_s
         "sexe": current_student.sexe,
         "is_active": current_student.is_active
     }
+
