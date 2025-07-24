@@ -1,3 +1,4 @@
+#app/models/student.py
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -17,3 +18,6 @@ class Student(Base):
     
     # Relations
     resultats = relationship("ResultatFinal", back_populates="etudiant")
+    niveau = relationship("Niveau", back_populates="etudiants")
+
+from app.models.niveau import Niveau

@@ -1,27 +1,18 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="min-h-screen p-8 bg-white">
-    <h2 class="text-2xl font-bold mb-4">
-      Mes Résultats — {{ student.nom }} {{ student.prenom }} ({{ student.matricule }})
-    </h2>
-
-    <!-- Sélection de session -->
-    <div class="mb-4">
-      <label for="session" class="block mb-1 font-medium">Session :</label>
-      <select
-        v-model="selectedSession"
-        id="session"
-        class="p-2 border border-gray-300 rounded w-full max-w-xs"
-        @change="fetchResults"
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">
+        Mes Résultats — {{ student.nom }} {{ student.prenom }} ({{ student.matricule }})
+      </h2>
+      <RouterLink
+        to="/dashboard"
+        class="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded"
       >
-        <option :value="null">-- Toutes les sessions --</option>
-        <option v-for="session in sessions" :key="session.id" :value="session.id">
-          {{ session.libelle }}
-        </option>
-      </select>
+        Retour au Dashboard
+      </RouterLink>
     </div>
 
-    <!-- Barre de recherche -->
     <input
       v-model="search"
       placeholder="Rechercher une matière..."
@@ -33,7 +24,7 @@
     <div v-else>
       <div v-for="ue in filteredResults" :key="ue.ue_nom" class="mb-6">
         <h3 class="text-xl font-semibold mb-2">
-          UE : {{ ue.ue_nom }} (Crédit : {{ ue.ue_credits }})
+          UE : {{ ue.ue_nom }} (Crédit : {{ ue.ue_credit }})
         </h3>
 
         <table class="w-full border border-gray-300 mb-4">
@@ -69,8 +60,6 @@ import { useAuthStore } from '@/stores/auth'
 
 const results = ref([])
 const student = ref({})
-const sessions = ref([])
-const selectedSession = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const search = ref('')
@@ -86,31 +75,6 @@ const filteredResults = computed(() => {
 const matchesSearch = (ecNom) =>
   !search.value || ecNom.toLowerCase().includes(search.value.toLowerCase())
 
-const fetchResults = async () => {
-  try {
-    loading.value = true
-    error.value = null
-
-    const config = {
-      headers: { Authorization: `Bearer ${authStore.accessToken}` },
-    }
-
-    const id = student.value.id
-    const params = selectedSession.value ? `?examen_id=${selectedSession.value}` : ''
-    const response = await axios.get(
-      `http://localhost:8000/api/v1/students/${id}/results${params}`,
-      config,
-    )
-
-    results.value = response.data.results
-    // eslint-disable-next-line no-unused-vars
-  } catch (err) {
-    error.value = 'Erreur lors du chargement des résultats.'
-  } finally {
-    loading.value = false
-  }
-}
-
 onMounted(async () => {
   if (!authStore.isAuthenticated) {
     error.value = 'Non connecté.'
@@ -122,22 +86,15 @@ onMounted(async () => {
     const config = {
       headers: { Authorization: `Bearer ${authStore.accessToken}` },
     }
-
     const me = await axios.get('http://localhost:8000/api/v1/students/me', config)
     student.value = me.data
-
     const id = me.data.id
-
-    const sessionsResponse = await axios.get(
-      `http://localhost:8000/api/v1/students/${id}/examens`,
-      config,
-    )
-    sessions.value = sessionsResponse.data
-
-    await fetchResults()
+    const response = await axios.get(`http://localhost:8000/api/v1/students/${id}/results`, config)
+    results.value = response.data.results
     // eslint-disable-next-line no-unused-vars
   } catch (err) {
-    error.value = 'Erreur lors du chargement des données.'
+    error.value = 'Erreur lors du chargement des résultats.'
+  } finally {
     loading.value = false
   }
 })

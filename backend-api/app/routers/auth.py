@@ -8,6 +8,7 @@ from app.schemas.student import LoginRequest, LoginResponse
 from app.models.student import Student
 from app.core.security import create_access_token
 from app.core.config import settings
+from app.core.security import create_access_token
 
 SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = settings.JWT_ALGORITHM
@@ -18,27 +19,23 @@ router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 @router.post("/login", response_model=LoginResponse)
-async def login(request: LoginRequest, db: Session = Depends(get_db)):
-    # Rechercher l'étudiant
-    student = db.query(Student).filter(Student.matricule == request.matricule).first()
-    
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.matricule == data.matricule).first()
+
     if not student:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Matricule non trouvé"
-        )
-    
-    if not student.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Compte désactivé"
-        )
-    
-    # Créer le token JWT
-    access_token = create_access_token(data={"sub": str(student.id)})
-    
+        raise HTTPException(status_code=401, detail="Matricule invalide")
+
+    jwt_token = create_access_token(data={"sub": str(student.id)})
+
     return {
-        "access_token": access_token,
+        "access_token": jwt_token,
         "token_type": "bearer",
-        "student": student
+        "student": {
+            "id": student.id,
+            "matricule": student.matricule,
+            "nom": student.nom,
+            "prenom": student.prenom,
+            "sexe": student.sexe,
+            "niveau": f"{student.niveau.nom} ({student.niveau.abr})" if student.niveau else None
+        }
     }

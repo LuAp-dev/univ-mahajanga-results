@@ -6,6 +6,7 @@ from fastapi import Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import examen
+from app.models import student
 from app.models.student import Student
 from app.models.result import ResultatFinal
 from app.models.ec import EC
@@ -14,6 +15,9 @@ from app.core.security import get_current_student
 from app.schemas.result import StudentResultsResponse
 from app.models.examen import Examen
 from collections import defaultdict
+from fastapi import Body
+from app.schemas.student import StudentUpdate
+
 
 
 router = APIRouter()
@@ -23,8 +27,11 @@ async def get_student_results(
     student_id: int,
     examen_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student)
+    current_student_raw: Student = Depends(get_current_student)
 ):
+    # Charger l'étudiant connecté avec sa relation niveau
+    current_student = db.query(Student).options(joinedload(Student.niveau)).filter(Student.id == current_student_raw.id).first()
+
     if current_student.id != student_id:
         raise HTTPException(status_code=403, detail="Accès non autorisé")
 
@@ -65,22 +72,33 @@ async def get_student_results(
             "nom": current_student.nom,
             "prenom": current_student.prenom,
             "sexe": current_student.sexe,
-            "is_active": current_student.is_active
+            "is_active": current_student.is_active,
+            "niveau": f"{current_student.niveau.nom} ({current_student.niveau.abr})" if current_student.niveau else None
         },
         "results": ue_results,
         "overall_status": overall_status,
         "average": average
     }
 
+
+
 @router.get("/me")
-async def get_current_user_info(current_student: Student = Depends(get_current_student)):
+async def get_current_user_info(
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student)
+):
+    student = db.query(Student).options(
+        joinedload(Student.niveau)
+    ).filter(Student.id == current_student.id).first()
+
     return {
-        "id": current_student.id,
-        "matricule": current_student.matricule,
-        "nom": current_student.nom,
-        "prenom": current_student.prenom,
-        "sexe": current_student.sexe,
-        "is_active": current_student.is_active
+        "id": student.id,
+        "matricule": student.matricule,
+        "nom": student.nom,
+        "prenom": student.prenom,
+        "sexe": student.sexe,
+        "is_active": student.is_active,
+        "niveau": f"{student.niveau.nom} ({student.niveau.abr})" if student.niveau else None
     }
 
 @router.get("/{student_id}/examens")
@@ -99,3 +117,38 @@ async def get_available_examens_for_student(
     exams = db.query(Examen).filter(Examen.id.in_(examens_ids)).all()
 
     return [{"id": e.id, "libelle": f"Session {e.id}"} for e in exams]
+
+@router.put("/{student_id}")
+async def update_student_profile(
+    student_id: int,
+    data: StudentUpdate,
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student)
+):
+    if current_student.id != student_id:
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Étudiant non trouvé")
+
+    # Mise à jour des champs si fournis
+    if data.nom is not None:
+        student.nom = data.nom
+    if data.prenom is not None:
+        student.prenom = data.prenom
+    if data.sexe is not None:
+        student.sexe = data.sexe
+
+    db.commit()
+    db.refresh(student)
+
+    return {
+        "id": student.id,
+        "matricule": student.matricule,
+        "nom": student.nom,
+        "prenom": student.prenom,
+        "sexe": student.sexe,
+        "niveau": f"{student.niveau.nom} ({student.niveau.abr})" if student.niveau else None,
+        "is_active": student.is_active
+    }

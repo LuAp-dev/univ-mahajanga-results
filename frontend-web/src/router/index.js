@@ -29,6 +29,12 @@ const routes = [
     path: '/:pathMatch(.*)*',
     redirect: '/login', // Redirige toute URL inconnue vers login
   },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/views/Profile.vue'),
+    meta: { requiresAuth: true },
+  },
 ]
 
 const router = createRouter({

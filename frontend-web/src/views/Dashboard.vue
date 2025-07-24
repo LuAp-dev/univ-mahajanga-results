@@ -7,6 +7,12 @@
       <RouterLink to="/results" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
         Voir mes résultats
       </RouterLink>
+      <RouterLink
+        to="/profile"
+        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+      >
+        Mon profil
+      </RouterLink>
       <button @click="logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
         Déconnexion
       </button>
