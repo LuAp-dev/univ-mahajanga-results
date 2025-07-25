@@ -15,8 +15,6 @@ from app.core.security import get_current_student
 from app.schemas.result import StudentResultsResponse
 from app.models.examen import Examen
 from collections import defaultdict
-from fastapi import Body
-from app.schemas.student import StudentUpdate
 
 
 
@@ -118,37 +116,3 @@ async def get_available_examens_for_student(
 
     return [{"id": e.id, "libelle": f"Session {e.id}"} for e in exams]
 
-@router.put("/{student_id}")
-async def update_student_profile(
-    student_id: int,
-    data: StudentUpdate,
-    db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student)
-):
-    if current_student.id != student_id:
-        raise HTTPException(status_code=403, detail="Accès non autorisé")
-
-    student = db.query(Student).filter(Student.id == student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Étudiant non trouvé")
-
-    # Mise à jour des champs si fournis
-    if data.nom is not None:
-        student.nom = data.nom
-    if data.prenom is not None:
-        student.prenom = data.prenom
-    if data.sexe is not None:
-        student.sexe = data.sexe
-
-    db.commit()
-    db.refresh(student)
-
-    return {
-        "id": student.id,
-        "matricule": student.matricule,
-        "nom": student.nom,
-        "prenom": student.prenom,
-        "sexe": student.sexe,
-        "niveau": f"{student.niveau.nom} ({student.niveau.abr})" if student.niveau else None,
-        "is_active": student.is_active
-    }

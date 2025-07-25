@@ -7,9 +7,6 @@ class StudentBase(BaseModel):
     prenom: Optional[str]
     sexe: Optional[str]
 
-class StudentUpdate(StudentBase):
-    pass
-
 class StudentResponse(StudentBase):
     id: int
     matricule: str
