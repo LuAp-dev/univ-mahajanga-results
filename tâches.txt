@@ -1,0 +1,74 @@
+Semaine 1: 
+----------
+09/06 - 13/06: 
+-Installation de la plupart des outils de developpement
+(Laragon, fastAPI, SQLAlchemy, Docker, Tailwind CSS, WSL)
+-Création d'un repositoire Github pour le projet
+
+#########################################################
+
+Semaine 2:
+----------
+16/06 - 20/06:
+-Lecture du TDR du projet
+-Analyse du projet SmartScol, notemment la base de données qui sera la même dans ce projet
+-Début de familiarisation avec les outils Laragon, fastAPI et Docker
+-Début de configuration de l'appareil pour le bon fonctionnement des logiciels
+(Installation de WSL et WSL2, Lien VSCode-Github)
+
+#########################################################
+
+Semaine 3:
+---------
+23/06 - 27/06:
+-Familiarisation avancée avec Laragon, FastAPI et Docker
+-Configuration de l'appareil presque terminée (Éxecution de scripts autorisée, mise à jour du Bios)
+
+########################################################
+
+Semaine 4:
+---------
+30/06:
+-Observation de la configuration des routers et de l'installation d'un réseau Wi-FI et étudiant et administrateur dans le campus de l'université
+-Problème d'installation de Composer.exe  =>  Utilisation de Wampserver,  Uvicorn et Python Venv à la place de Laragon et Composer
+
+01/07:
+-Création du fichier tâches.txt dans le répositoire Github
+-Continuation de la familiarition avec FastAPI
+
+02/07 - 04/07:
+-Début du codage de la partie FastAPI (fichier backend-api) du projet
+
+########################################################
+
+Semaine 5:
+---------
+07/07 - 11/07
+-Ajout de la structure initiale de l'API backend avec la configuration, les modèles, les routeurs et l'authentification
+-Refactorisation des modèles et schémas de résultats, ajout des modèles EC et Examen, et implémentation l'authentification JWT pour la connexion des étudiants
+-Amélioration de la configuration et des modèles : ajout des restrictions variables supplémentaires, mise à jour des relations et amélioration de la récupération des résultats des étudiants
+
+########################################################
+
+Semaine 6:
+---------
+-Refactorisation de la création et de l'authentification des jetons JWT : mise à jour de la gestion de l'expiration des jetons, amélioration des messages d'erreur et renforcement de la relation d'examen dans les modèles
+-Refactorisation des modèles et utilitaires : simplification des imports et amélioration de l'organisation du code
+-Refactorisation de la récupération des résultats étudiants : amélioration des vérifications d'autorisation et l'efficacité des requêtes
+
+########################################################
+
+Semaine 7:
+---------
+-Corriger la réponse des résultats étudiants : supprimer la clé dupliquée ec_nom et s'assurer que ec_nom est bien défini dans le schéma Result
+-Corriger la réponse des résultats étudiants : corriger la clé dupliquée pour ec_nom et inclure ec_code
+-Refactoriser les modèles Examen et la récupération des résultats étudiants : supprimer l'attribut inutilisé type et mettre à jour les noms d'examens dans la réponse
+-Refactoriser les modèles EC et Examen : mettre à jour les types d'attributs et les relations, améliorer la réponse des résultats étudiants
+-Refactoriser les modèles EC et Examen : mettre à jour les attributs et les relations, améliorer la récupération des résultats étudiants
+
+########################################################
+
+
+
+
+
