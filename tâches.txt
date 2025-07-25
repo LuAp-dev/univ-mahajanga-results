@@ -43,7 +43,7 @@ Semaine 4:
 
 Semaine 5:
 ---------
-07/07 - 11/07
+07/07 - 11/07:
 -Ajout de la structure initiale de l'API backend avec la configuration, les modèles, les routeurs et l'authentification
 -Refactorisation des modèles et schémas de résultats, ajout des modèles EC et Examen, et implémentation l'authentification JWT pour la connexion des étudiants
 -Amélioration de la configuration et des modèles : ajout des restrictions variables supplémentaires, mise à jour des relations et amélioration de la récupération des résultats des étudiants
@@ -52,23 +52,28 @@ Semaine 5:
 
 Semaine 6:
 ---------
+14/07 - 18/07:
 -Refactorisation de la création et de l'authentification des jetons JWT : mise à jour de la gestion de l'expiration des jetons, amélioration des messages d'erreur et renforcement de la relation d'examen dans les modèles
 -Refactorisation des modèles et utilitaires : simplification des imports et amélioration de l'organisation du code
 -Refactorisation de la récupération des résultats étudiants : amélioration des vérifications d'autorisation et l'efficacité des requêtes
+-Correction de la réponse des résultats étudiants : suppression de la clé dupliquée ec_nom et la garantie que ec_nom est bien défini dans le schéma Result
+-Correction de la réponse des résultats étudiants : correction de la clé dupliquée pour ec_nom et inclusion de ec_code
+-Refactorisation des modèles Examen et de la récupération des résultats étudiants : suppression de l'attribut inutilisé type et mise à jour des noms d'examens dans la réponse
+-Refactorisation des modèles EC et Examen : mise à jour des types d'attributs et les relations, amélioration de la réponse des résultats étudiants
+-Refactorisation des modèles EC et Examen : mise à jour des attributs et des relations, amélioration de la récupération des résultats étudiants
 
 ########################################################
 
 Semaine 7:
 ---------
--Corriger la réponse des résultats étudiants : supprimer la clé dupliquée ec_nom et s'assurer que ec_nom est bien défini dans le schéma Result
--Corriger la réponse des résultats étudiants : corriger la clé dupliquée pour ec_nom et inclure ec_code
--Refactoriser les modèles Examen et la récupération des résultats étudiants : supprimer l'attribut inutilisé type et mettre à jour les noms d'examens dans la réponse
--Refactoriser les modèles EC et Examen : mettre à jour les types d'attributs et les relations, améliorer la réponse des résultats étudiants
--Refactoriser les modèles EC et Examen : mettre à jour les attributs et les relations, améliorer la récupération des résultats étudiants
-
-########################################################
-
-
+21/07 - 25/07:
+-Début de création du frontend simple
+-Configuration de Tailwind CSS et intégration dans le CSS principal
+-Problème d'installation de Tailwind CSS, négligence du problème
+-Refactorisation de App.vue pour inclure l'en-tête et la navigation
+-Amélioration de l'afichage des résultats et des pages
+-Ajout d'un dashboard et d'une page profil
+-Frontend simple sans embellissement par Tailwind CSS terminé
 
 
 
