@@ -75,5 +75,9 @@ Semaine 7:
 -Ajout d'un dashboard et d'une page profil
 -Frontend simple sans embellissement par Tailwind CSS terminé
 
+########################################################
 
-
+Semaine 8:
+---------
+28/07 - 01/08:
+-
