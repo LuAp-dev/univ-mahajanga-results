@@ -1,8 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <div class="min-h-screen bg-gray-100 p-8">
+  <div class="flex-grow bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 p-8">
     <h1 class="text-2xl font-bold mb-4">Bienvenue, {{ authStore.nom }}</h1>
-
     <div class="space-x-4">
       <RouterLink to="/results" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
         Voir mes résultats

@@ -1,29 +1,30 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-      <h2 class="text-2xl font-bold mb-6 text-center">Connexion Étudiant</h2>
-
+  <div class="flex-grow flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
+      <h2 class="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">
+        Connexion Étudiant
+      </h2>
       <form @submit.prevent="login" class="space-y-4">
         <div>
-          <label for="matricule" class="block text-sm font-medium text-gray-700">Matricule</label>
+          <label for="matricule" class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Matricule</label
+          >
           <input
             v-model="matricule"
             type="text"
             id="matricule"
             required
-            class="mt-1 block w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white"
             placeholder="Entrez votre matricule"
           />
         </div>
-
         <button
           type="submit"
           class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
         >
           Se connecter
         </button>
-
         <p v-if="error" class="text-red-500 text-sm text-center">{{ error }}</p>
       </form>
     </div>
