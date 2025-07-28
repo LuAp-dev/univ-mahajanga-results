@@ -1,50 +1,54 @@
 <script setup>
-import { RouterView } from 'vue-router'
-import { ref, watchEffect, onMounted } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
-const darkMode = ref(false)
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
 
-// Initialiser le mode selon la préférence système ou localStorage
-onMounted(() => {
-  const savedMode = localStorage.getItem('darkMode')
-  if (savedMode !== null) {
-    darkMode.value = savedMode === 'true'
-  } else {
-    // Utiliser la préférence système par défaut
-    darkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  }
-})
+// On cache le bouton sur la page login
+const showLogout = computed(() => route.path !== '/login')
 
-watchEffect(() => {
-  document.documentElement.classList.toggle('dark', darkMode.value)
-  localStorage.setItem('darkMode', darkMode.value.toString())
-})
-
-const toggleDarkMode = () => {
-  darkMode.value = !darkMode.value
+const logout = () => {
+  authStore.logout()
+  router.push('/login')
 }
 </script>
 
 <template>
-  <div class="min-h-screen w-full bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+  <div class="dark min-h-screen w-full bg-gray-900 text-gray-100">
     <header
-      class="w-full flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700"
+      class="w-full flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800 shadow"
     >
       <img
         src="https://www.mahajanga-univ.mg/storage/settings/ET2YH6R099vUaVEXRhymS3etHDZngsWy4YcWGKKM.png"
         alt="Logo Université Mahajanga"
-        class="h-12"
+        class="h-12 object-contain"
       />
+
       <button
-        class="bg-gray-300 dark:bg-gray-700 text-sm text-black dark:text-white px-3 py-1 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors"
-        @click="toggleDarkMode"
+        v-if="showLogout"
+        @click="logout"
+        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors"
       >
-        {{ darkMode ? 'Mode Clair' : 'Mode Sombre' }}
+        Déconnexion
       </button>
     </header>
 
     <main class="w-full min-h-[calc(100vh-80px)]">
-      <router-view />
+      <RouterView />
     </main>
   </div>
 </template>
+
+<style>
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+</style>
