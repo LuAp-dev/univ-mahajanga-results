@@ -1,52 +1,111 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <div class="flex-grow p-8 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold">
-        Mes Résultats — {{ student.nom }} {{ student.prenom }} ({{ student.matricule }})
-      </h2>
-      <RouterLink
-        to="/dashboard"
-        class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-black dark:text-white px-4 py-2 rounded"
+  <div class="w-full min-h-full p-8 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 class="text-2xl md:text-3xl font-bold">
+          Mes Résultats — {{ student.nom }} {{ student.prenom }} ({{ student.matricule }})
+        </h2>
+        <RouterLink
+          to="/dashboard"
+          class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-black dark:text-white px-4 py-2 rounded-lg transition-colors"
+        >
+          Retour au Dashboard
+        </RouterLink>
+      </div>
+
+      <div class="mb-6">
+        <input
+          v-model="search"
+          placeholder="Rechercher une matière..."
+          class="p-3 border border-gray-300 dark:border-gray-600 rounded-lg w-full max-w-md dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
+
+      <div v-if="loading" class="flex justify-center items-center h-32">
+        <div class="text-lg">Chargement...</div>
+      </div>
+
+      <div
+        v-else-if="error"
+        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 rounded-lg"
       >
-        Retour au Dashboard
-      </RouterLink>
-    </div>
+        {{ error }}
+      </div>
 
-    <input
-      v-model="search"
-      placeholder="Rechercher une matière..."
-      class="mb-6 p-2 border border-gray-300 dark:border-gray-600 rounded w-full max-w-md dark:bg-gray-800 dark:text-white"
-    />
+      <div v-else class="space-y-6">
+        <div
+          v-for="ue in filteredResults"
+          :key="ue.ue_nom"
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+        >
+          <div
+            class="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-b border-gray-200 dark:border-gray-600"
+          >
+            <h3 class="text-xl font-semibold">
+              UE : {{ ue.ue_nom }}
+              <span class="text-sm font-normal text-gray-600 dark:text-gray-400"
+                >(Crédit : {{ ue.ue_credit }})</span
+              >
+            </h3>
+          </div>
 
-    <div v-if="loading">Chargement...</div>
-    <div v-else-if="error" class="text-red-500">{{ error }}</div>
-    <div v-else>
-      <div v-for="ue in filteredResults" :key="ue.ue_nom" class="mb-6">
-        <h3 class="text-xl font-semibold mb-2">
-          UE : {{ ue.ue_nom }} (Crédit : {{ ue.ue_credit }})
-        </h3>
-        <table class="w-full border border-gray-300 dark:border-gray-600 mb-4">
-          <thead class="bg-gray-200 dark:bg-gray-700">
-            <tr>
-              <th class="p-2">Matière</th>
-              <th class="p-2">Note</th>
-              <th class="p-2">Décision du jury</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="ec in ue.ecs"
-              :key="ec.ec_nom"
-              v-show="matchesSearch(ec.ec_nom)"
-              class="text-center border-t border-gray-300 dark:border-gray-700"
-            >
-              <td class="p-2">{{ ec.ec_nom }}</td>
-              <td class="p-2">{{ ec.note }}</td>
-              <td class="p-2">{{ ec.decision }}</td>
-            </tr>
-          </tbody>
-        </table>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-100 dark:bg-gray-700">
+                <tr>
+                  <th
+                    class="px-6 py-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Matière
+                  </th>
+                  <th
+                    class="px-6 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Note
+                  </th>
+                  <th
+                    class="px-6 py-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Décision du jury
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
+                <tr
+                  v-for="ec in ue.ecs"
+                  :key="ec.ec_nom"
+                  v-show="matchesSearch(ec.ec_nom)"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <td class="px-6 py-4 text-sm">{{ ec.ec_nom }}</td>
+                  <td
+                    class="px-6 py-4 text-sm text-center font-semibold"
+                    :class="
+                      ec.note >= 10
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    "
+                  >
+                    {{ ec.note }}
+                  </td>
+                  <td class="px-6 py-4 text-sm text-center">
+                    <span
+                      class="px-2 py-1 rounded-full text-xs font-medium"
+                      :class="
+                        ec.decision === 'ADMIS'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                      "
+                    >
+                      {{ ec.decision }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
