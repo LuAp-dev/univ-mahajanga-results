@@ -80,4 +80,6 @@ Semaine 7:
 Semaine 8:
 ---------
 28/07 - 01/08:
--
+-Test du frontend sur cdn: test avec tailwindcss actif
+-Embellissement des pages Login, Dashboard, Profile et Results
+-Frontend avec tailwindcss fonctionnel
