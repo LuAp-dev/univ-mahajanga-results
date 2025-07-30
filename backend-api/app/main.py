@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import auth, students
+from app.routers import auth, students, chatbot
 from app import models
 
 # Création de l'app FastAPI
@@ -29,6 +29,7 @@ app.add_middleware(
 # Inclusion des routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(students.router, prefix="/api/v1/students", tags=["Students"])
+app.include_router(chatbot.router, prefix="/api/v1/chatbot", tags=["Chatbot"])
 
 # Route racine
 @app.get("/")

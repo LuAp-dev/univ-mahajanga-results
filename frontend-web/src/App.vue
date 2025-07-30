@@ -2,6 +2,7 @@
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import ChatBot from '@/components/ChatBot.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -39,6 +40,7 @@ const logout = () => {
     <main class="w-full min-h-[calc(100vh-80px)]">
       <RouterView />
     </main>
+    <ChatBot />
   </div>
 </template>
 
