@@ -106,6 +106,14 @@
             </table>
           </div>
         </div>
+
+        <!-- Moyenne en dehors de la boucle -->
+        <div
+          v-if="average !== null"
+          class="text-right text-lg font-bold mt-6 border-t pt-4 border-gray-300 dark:border-gray-700"
+        >
+          Moyenne pondérée : {{ average }}
+        </div>
       </div>
     </div>
   </div>
@@ -117,6 +125,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
 const results = ref([])
+const average = ref(null)
 const student = ref({})
 const loading = ref(true)
 const error = ref(null)
@@ -149,6 +158,7 @@ onMounted(async () => {
     const id = me.data.id
     const response = await axios.get(`http://localhost:8000/api/v1/students/${id}/results`, config)
     results.value = response.data.results
+    average.value = response.data.average
     // eslint-disable-next-line no-unused-vars
   } catch (err) {
     error.value = 'Erreur lors du chargement des résultats.'

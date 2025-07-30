@@ -91,21 +91,6 @@ function closeChat() {
   messages.value = [{ sender: 'bot', text: 'Bienvenue ! Quel est ton matricule ?' }]
 }
 
-function displayResults(results) {
-  if (!results || results.length === 0) {
-    messages.value.push({ sender: 'bot', text: 'Aucun résultat à afficher.' })
-    return
-  }
-
-  results.forEach((ue) => {
-    let ueText = `UE : ${ue.ue_nom} (${ue.ue_credit} crédits)\n`
-    ue.ecs.forEach((ec) => {
-      ueText += `  - ${ec.ec_nom} : ${ec.note} (${ec.decision})\n`
-    })
-    messages.value.push({ sender: 'bot', text: ueText })
-  })
-}
-
 async function handleSend() {
   if (!input.value.trim()) return
 
@@ -154,7 +139,21 @@ async function handleSend() {
           `http://localhost:8000/api/v1/chatbot/student/${student.value.id}/results`,
         )
         rawResults.value = res.data.results
-        displayResults(rawResults.value)
+
+        for (const ue of rawResults.value) {
+          let ueText = `UE : ${ue.ue_nom} (${ue.ue_credit} crédits)\n`
+          for (const ec of ue.ecs) {
+            ueText += `  - ${ec.ec_nom} : ${ec.note} (${ec.decision})\n`
+          }
+          messages.value.push({ sender: 'bot', text: ueText })
+        }
+
+        if (res.data.average !== null) {
+          messages.value.push({
+            sender: 'bot',
+            text: `Moyenne pondérée : ${res.data.average}`,
+          })
+        }
 
         step.value = 2
         messages.value.push({
@@ -165,14 +164,14 @@ async function handleSend() {
       } catch (e) {
         messages.value.push({ sender: 'bot', text: 'Erreur lors du chargement des résultats.' })
       }
-    } else if (messageText.includes('fermer')) {
-      closeChat()
-    } else {
-      messages.value.push({
-        sender: 'bot',
-        text: 'Tu peux taper "profil", "résultats" ou "fermer".',
-      })
     }
+  } else if (messageText.includes('fermer')) {
+    closeChat()
+  } else {
+    messages.value.push({
+      sender: 'bot',
+      text: 'Tu peux taper "profil", "résultats" ou "fermer".',
+    })
   }
 }
 </script>

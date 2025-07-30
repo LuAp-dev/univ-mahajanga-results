@@ -35,7 +35,7 @@ def get_student_profile(student_id: int, db: Session = Depends(get_db)):
         "prenom": student.prenom,
         "matricule": student.matricule,
         "sexe": "Masculin" if student.sexe == "M" else "Féminin",
-        "niveau": student.niveau.nom if student.niveau else "Inconnu"
+        "niveau": f"{student.niveau.nom} ({student.niveau.abr})" if student.niveau else None
     }
 
 
