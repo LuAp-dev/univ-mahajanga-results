@@ -15,6 +15,13 @@ class StudentResponse(StudentBase):
     class Config:
         from_attributes = True
 
+class StudentProfileResponse(BaseModel):
+    id: int
+    nom: str
+    prenom: str
+    matricule: str
+    sexe: str
+    niveau: str
 
 class LoginRequest(BaseModel):
     matricule: str
