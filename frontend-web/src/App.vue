@@ -18,7 +18,7 @@ const logout = () => {
 </script>
 
 <template>
-  <div class="dark min-h-screen w-full bg-gray-900 text-gray-100">
+  <div class="dark min-h-screen flex flex-col w-full bg-gray-900 text-gray-100">
     <header
       class="w-full flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800 shadow"
     >
@@ -37,9 +37,18 @@ const logout = () => {
       </button>
     </header>
 
-    <main class="w-full min-h-[calc(100vh-80px)]">
+    <main class="flex-1 w-full min-h-[calc(100vh-80px)] pb-16">
       <RouterView />
     </main>
+
+    <!-- Footer global -->
+    <footer
+      class="fixed bottom-0 left-0 w-full text-left text-gray-500 text-sm px-6 py-2 bg-gray-900 z-40"
+    >
+      Copyrights © 2025 Université de Mahajanga | DTIC
+    </footer>
+
+    <!-- ChatBot -->
     <ChatBot />
   </div>
 </template>
