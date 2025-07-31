@@ -7,8 +7,21 @@ from app.models.student import Student
 from app.schemas.result import StudentResultsResponse
 from app.utils.result_formatter import get_results_for_student
 from app.schemas.student import StudentProfileResponse
+from app.schemas.chatbot import MatriculeRequest
 
 router = APIRouter(prefix="/api/v1/chatbot", tags=["Chatbot"])
+
+@router.post("/check")
+def verify_matricule(request: MatriculeRequest, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.matricule == request.matricule).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Étudiant non trouvé.")
+    return {
+        "id": student.id,
+        "nom": student.nom,
+        "prenom": student.prenom,
+        "matricule": student.matricule,
+    }
 
 @router.get("/student/{matricule}")
 def verify_student(matricule: str, db: Session = Depends(get_db)):

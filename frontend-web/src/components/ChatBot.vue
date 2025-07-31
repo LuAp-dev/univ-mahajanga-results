@@ -1,3 +1,4 @@
+<!--components/ChatBot.vue-->
 <template>
   <div>
     <!-- BOUTON DU CHATBOT AVANT OUVERTURE -->
@@ -74,7 +75,11 @@
           />
           <button
             type="submit"
-            class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
+            :disabled="!canSend"
+            :class="[
+              'px-4 py-2 rounded-lg text-white transition-colors',
+              canSend ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 cursor-not-allowed',
+            ]"
           >
             ➤
           </button>
@@ -98,9 +103,10 @@ const messages = ref([{ sender: 'bot', text: 'Bienvenue ! Quel est ton matricule
 const showPulse = ref(true)
 const chatScrollAnchor = ref(null)
 const loading = ref(false)
+const MESSAGE_COOLDOWN = 2000 // 2 seconde entre deux envois
 
 let inactivityTimer = null
-const AUTO_CLOSE_DELAY = 2 * 60 * 1000 // 1 minutes
+const AUTO_CLOSE_DELAY = 2 * 60 * 1000 // 2 minutes
 
 function resetInactivityTimer() {
   clearTimeout(inactivityTimer)
@@ -143,21 +149,37 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function handleSend() {
-  if (!input.value.trim()) return
+let lastMessageTime = 0
+const canSend = ref(true)
 
-  messages.value.push({ sender: 'user', text: input.value })
+async function handleSend() {
+  if (!canSend.value || !input.value.trim()) return
+  const now = Date.now()
+  if (now - lastMessageTime < MESSAGE_COOLDOWN || !input.value.trim()) return
+  lastMessageTime = now
+  canSend.value = false
+  setTimeout(() => {
+    canSend.value = true
+  }, MESSAGE_COOLDOWN)
+
+  // Nettoyage de l'entrée côté client (XSS basique)
+  const cleanedInput = input.value.replace(/[<>{}[\]\\]/g, '')
+
+  messages.value.push({ sender: 'user', text: cleanedInput })
   scrollToBottom()
   resetInactivityTimer()
 
-  const userInput = input.value.trim()
+  const userInput = cleanedInput.trim()
   input.value = ''
   const messageText = userInput.toLowerCase()
 
   if (step.value === 0) {
     try {
-      const res = await axios.get(`http://localhost:8000/api/v1/chatbot/student/${userInput}`)
-      student.value = res.data
+      const res = await axios.post('http://localhost:8000/api/v1/chatbot/check', {
+        matricule: userInput,
+      })
+
+      student.value = { id: res.data.id, matricule: userInput }
       matricule.value = userInput
       step.value = 1
       messages.value.push({
