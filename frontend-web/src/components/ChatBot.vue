@@ -99,6 +99,11 @@ async function handleSend() {
   input.value = ''
   const messageText = userInput.toLowerCase()
 
+  if (messageText.includes('fermer')) {
+    closeChat()
+    return
+  }
+
   if (step.value === 0) {
     try {
       const res = await axios.get(`http://localhost:8000/api/v1/chatbot/student/${userInput}`)
@@ -164,14 +169,12 @@ async function handleSend() {
       } catch (e) {
         messages.value.push({ sender: 'bot', text: 'Erreur lors du chargement des résultats.' })
       }
+    } else {
+      messages.value.push({
+        sender: 'bot',
+        text: 'Je n’ai pas compris. Tu peux taper :\n- "profil" pour voir ton profil\n- "résultats" pour voir tes notes\n- "fermer" pour quitter',
+      })
     }
-  } else if (messageText.includes('fermer')) {
-    closeChat()
-  } else {
-    messages.value.push({
-      sender: 'bot',
-      text: 'Tu peux taper "profil", "résultats" ou "fermer".',
-    })
   }
 }
 </script>

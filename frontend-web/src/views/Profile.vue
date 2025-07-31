@@ -2,6 +2,15 @@
 <template>
   <div class="w-full min-h-full bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 p-8">
     <div class="max-w-4xl mx-auto">
+      <div class="flex justify-end mb-4">
+        <RouterLink
+          to="/dashboard"
+          class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-black dark:text-white px-4 py-2 rounded-lg transition-colors"
+        >
+          Retour au Dashboard
+        </RouterLink>
+      </div>
+
       <h2 class="text-3xl font-bold mb-6">Mon Profil</h2>
 
       <div v-if="loading" class="flex justify-center items-center h-32">
@@ -40,15 +49,6 @@
             </tr>
           </tbody>
         </table>
-
-        <div class="mt-6">
-          <RouterLink
-            to="/dashboard"
-            class="inline-block bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors"
-          >
-            Retour au Dashboard
-          </RouterLink>
-        </div>
       </div>
     </div>
   </div>
