@@ -22,19 +22,33 @@ const logout = () => {
     <header
       class="w-full flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800 shadow"
     >
+      <!-- Logo Université à gauche -->
       <img
         src="https://www.mahajanga-univ.mg/storage/settings/ET2YH6R099vUaVEXRhymS3etHDZngsWy4YcWGKKM.png"
         alt="Logo Université Mahajanga"
         class="h-12 object-contain"
       />
 
-      <button
-        v-if="showLogout"
-        @click="logout"
-        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors"
-      >
-        Déconnexion
-      </button>
+      <!-- Titre centré -->
+      <h1 class="text-lg font-semibold text-center text-white flex-1">
+        Faculté de Médecine – Consultation des résultats
+      </h1>
+
+      <!-- Logo Faculté à droite + bouton logout -->
+      <div class="flex items-center space-x-4">
+        <img
+          src="https://www.mahajanga-univ.mg/storage/etabs/kJyFlHJbjW8dQS3Z7A04u4pACX4bWmD3LKaT92kH.png"
+          alt="Logo Faculté de Médecine"
+          class="h-12 object-contain"
+        />
+        <button
+          v-if="showLogout"
+          @click="logout"
+          class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors"
+        >
+          Déconnexion
+        </button>
+      </div>
     </header>
 
     <main class="flex-1 w-full min-h-[calc(100vh-80px)] pb-16">
