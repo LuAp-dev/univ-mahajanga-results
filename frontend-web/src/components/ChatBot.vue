@@ -10,7 +10,7 @@
     >
       <span class="relative z-10 text-white text-sm font-bold">
         🤖<br />
-        <span v-if="showPulse" class="text-[10px]">Appuie ici !</span>
+        <span v-if="showPulse" class="text-[10px]">Appuyez ici !</span>
       </span>
       <span class="absolute w-full h-full rounded-full border-4 border-orange-600"></span>
     </button>
