@@ -109,7 +109,9 @@
 import { ref, nextTick, computed } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const isOpen = ref(false)
 const input = ref('')
@@ -238,22 +240,26 @@ async function handleSend() {
 
   if (step.value === 0.5) {
     try {
-      const res = await axios.post('http://localhost:8000/api/v1/chatbot/login', {
+      await authStore.login(matricule.value, userInput)
+      if (router.currentRoute.value.path === '/login') {
+        await router.push('/dashboard')
+      }
+
+      student.value = {
+        id: authStore.userId,
         matricule: matricule.value,
-        password: userInput,
-      })
-      student.value = { id: res.data.id, matricule: res.data.matricule }
+      }
+
       step.value = 1
 
-      // ✅ Synchroniser avec le store principal
-      await authStore.login(matricule.value, userInput)
-
       await typeBotMessage(
-        `Bonjour ${res.data.prenom} ! Veux-tu voir ton "profil" ou tes "résultats" ?`,
+        `Bonjour ${authStore.prenom} ! Tu es bien connecté. Veux-tu voir ton "profil" ou tes "résultats" ?`,
       )
       // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      await typeBotMessage('Échec de connexion. Vérifie ton matricule et ton mot de passe.')
+      await typeBotMessage(
+        'Échec de connexion. Vérifie ton matricule et ton mot de passe. Retape ton matricule:',
+      )
       step.value = 0
       matricule.value = ''
     }

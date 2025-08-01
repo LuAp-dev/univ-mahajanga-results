@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', {
     accessToken: localStorage.getItem('access_token') || null,
     userId: null,
     nom: null,
+    prenom: null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.accessToken,
@@ -29,6 +30,8 @@ export const useAuthStore = defineStore('auth', {
 
         this.userId = userResponse.data.id
         this.nom = userResponse.data.nom
+        this.prenom = userResponse.data.prenom
+        return userResponse.data
       } catch (error) {
         this.logout()
         throw error
