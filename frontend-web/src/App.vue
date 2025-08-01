@@ -12,8 +12,10 @@ const authStore = useAuthStore()
 const showLogout = computed(() => route.path !== '/login')
 
 const logout = () => {
-  authStore.logout()
-  router.push('/login')
+  if (confirm('Es-tu sûr de vouloir te déconnecter ?')) {
+    authStore.logout()
+    router.push('/login')
+  }
 }
 </script>
 

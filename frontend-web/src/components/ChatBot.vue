@@ -22,7 +22,7 @@
     >
       <div class="bg-gray-800 px-4 py-2 flex justify-between items-center rounded-t-lg">
         <h3 class="text-sm font-bold">Assistant Étudiant</h3>
-        <button @click="closeChat" class="text-gray-400 hover:text-white">✖</button>
+        <button @click="closeChat()" class="text-gray-400 hover:text-white">✖</button>
       </div>
 
       <transition-group name="chat" tag="div" class="flex-1 overflow-y-auto px-4 py-2 space-y-2">
@@ -108,7 +108,9 @@
 <script setup>
 import { ref, nextTick, computed } from 'vue'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const isOpen = ref(false)
 const input = ref('')
 const step = ref(0)
@@ -122,6 +124,7 @@ const loading = ref(false)
 const MESSAGE_COOLDOWN = 2000 // 2 seconde entre deux envois
 const showPassword = ref(false)
 const isPasswordStep = computed(() => step.value === 0.5)
+const MAX_MESSAGE_LENGTH = 26
 
 let inactivityTimer = null
 const AUTO_CLOSE_DELAY = 2 * 60 * 1000 // 2 minutes
@@ -139,7 +142,8 @@ function toggleChat() {
   resetInactivityTimer()
 }
 
-function closeChat() {
+function closeChat(force = false) {
+  if (!force && !confirm('Es-tu sûr de vouloir fermer le chatbot ?')) return
   isOpen.value = false
   input.value = ''
   step.value = 0
@@ -203,7 +207,7 @@ let lastMessageTime = 0
 const canSend = ref(true)
 
 async function handleSend() {
-  if (!canSend.value || !input.value.trim()) return
+  if (!canSend.value || !input.value.trim() || input.value.length > MAX_MESSAGE_LENGTH) return
   const now = Date.now()
   if (now - lastMessageTime < MESSAGE_COOLDOWN || !input.value.trim()) return
   lastMessageTime = now
@@ -240,6 +244,10 @@ async function handleSend() {
       })
       student.value = { id: res.data.id, matricule: res.data.matricule }
       step.value = 1
+
+      // ✅ Synchroniser avec le store principal
+      await authStore.login(matricule.value, userInput)
+
       await typeBotMessage(
         `Bonjour ${res.data.prenom} ! Veux-tu voir ton "profil" ou tes "résultats" ?`,
       )
@@ -313,7 +321,7 @@ async function handleSend() {
       }
       scrollToBottom()
     } else if (messageText.includes('fermer')) {
-      closeChat()
+      if (confirm('Es-tu sûr de vouloir fermer le chatbot ?')) closeChat(true)
     } else {
       await typeBotMessage(
         'Je n’ai pas compris. Tu peux taper :\n- "profil" pour voir ton profil\n- "résultats" pour voir tes notes\n- "fermer" pour quitter',
