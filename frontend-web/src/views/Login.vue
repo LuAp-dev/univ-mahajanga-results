@@ -10,8 +10,9 @@
           <label
             for="matricule"
             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >Matricule</label
           >
+            Matricule
+          </label>
           <input
             v-model="matricule"
             type="text"
@@ -21,13 +22,32 @@
             placeholder="Entrez votre matricule"
           />
         </div>
+
+        <div>
+          <label
+            for="password"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Mot de passe
+          </label>
+          <input
+            v-model="password"
+            type="password"
+            id="password"
+            required
+            class="w-full border border-gray-300 dark:border-gray-600 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white transition-colors"
+            placeholder="Entrez votre mot de passe"
+          />
+        </div>
+
         <button
           type="submit"
-          :disabled="!matricule.trim()"
+          :disabled="!matricule.trim() || !password.trim()"
           class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 px-4 rounded-lg transition-colors"
         >
           Se connecter
         </button>
+
         <p
           v-if="error"
           class="text-red-500 text-sm text-center bg-red-50 dark:bg-red-900/20 p-2 rounded"
@@ -45,6 +65,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const matricule = ref('')
+const password = ref('')
 const error = ref(null)
 const router = useRouter()
 const authStore = useAuthStore()
@@ -52,11 +73,11 @@ const authStore = useAuthStore()
 const login = async () => {
   error.value = null
   try {
-    await authStore.login(matricule.value)
+    await authStore.login(matricule.value, password.value)
     router.push('/dashboard')
     // eslint-disable-next-line no-unused-vars
   } catch (err) {
-    error.value = 'Connexion échouée. Vérifie ton matricule.'
+    error.value = 'Connexion échouée. Vérifie ton matricule et ton mot de passe.'
   }
 }
 </script>

@@ -8,6 +8,9 @@ from app.core.config import settings
 from app.database import get_db
 from app.models.student import Student
 from fastapi.security import OAuth2PasswordBearer
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -40,3 +43,6 @@ def get_current_student(token: str = Depends(oauth2_scheme), db: Session = Depen
         raise credentials_exception
 
     return student
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)

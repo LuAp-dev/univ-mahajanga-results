@@ -19,5 +19,6 @@ class Student(Base):
     # Relations
     resultats = relationship("ResultatFinal", back_populates="etudiant")
     niveau = relationship("Niveau", back_populates="etudiants")
+    user = relationship("User", back_populates="etudiant", uselist=False)
 
 from app.models.niveau import Niveau

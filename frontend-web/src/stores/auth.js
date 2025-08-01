@@ -12,14 +12,16 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => !!state.accessToken,
   },
   actions: {
-    async login(matricule) {
+    async login(matricule, password) {
       try {
-        // Login
-        const response = await axios.post('http://localhost:8000/api/v1/auth/login', { matricule })
+        const response = await axios.post('http://localhost:8000/api/v1/auth/login', {
+          matricule,
+          password,
+        })
+
         this.accessToken = response.data.access_token
         localStorage.setItem('access_token', this.accessToken)
 
-        // Récupérer les infos user
         const config = {
           headers: { Authorization: `Bearer ${this.accessToken}` },
         }
@@ -28,7 +30,6 @@ export const useAuthStore = defineStore('auth', {
         this.userId = userResponse.data.id
         this.nom = userResponse.data.nom
       } catch (error) {
-        // En cas d'erreur, reset
         this.logout()
         throw error
       }

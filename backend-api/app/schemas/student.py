@@ -25,6 +25,7 @@ class StudentProfileResponse(BaseModel):
 
 class LoginRequest(BaseModel):
     matricule: str
+    password: str
 
 class LoginResponse(BaseModel):
     access_token: str

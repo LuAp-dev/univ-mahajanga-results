@@ -39,13 +39,17 @@
             alt="bot"
           />
           <div
-            class="inline-block px-4 py-2 rounded-lg text-sm whitespace-pre-line break-words"
-            :class="
-              msg.sender === 'bot' ? 'bg-gray-700 text-left' : 'bg-blue-600 text-right max-w-[75%]'
-            "
+            class="inline-block px-4 py-2 rounded-lg text-sm max-w-[75%]"
+            :class="msg.sender === 'bot' ? 'bg-gray-700 text-left' : 'bg-blue-600 text-right'"
           >
-            {{ msg.text }}
+            <div
+              v-if="msg.html"
+              class="bot-html-message whitespace-pre-wrap break-words"
+              v-html="msg.html"
+            ></div>
+            <span v-else class="whitespace-pre-wrap break-words">{{ msg.text }}</span>
           </div>
+
           <img
             v-if="msg.sender === 'user'"
             src="https://cdn-icons-png.flaticon.com/512/9131/9131529.png"
@@ -67,12 +71,24 @@
 
       <div class="p-3 border-t border-gray-700">
         <form @submit.prevent="handleSend" class="flex gap-2">
-          <input
-            v-model="input"
-            type="text"
-            placeholder="Écris ici..."
-            class="flex-1 p-2 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none"
-          />
+          <div class="relative flex-1">
+            <input
+              v-model="input"
+              :type="isPasswordStep && !showPassword ? 'password' : 'text'"
+              placeholder="Écris ici..."
+              class="w-full p-2 pr-10 rounded-lg bg-gray-800 text-white border border-gray-600 focus:outline-none"
+            />
+            <button
+              v-if="isPasswordStep"
+              type="button"
+              class="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-white"
+              @click="showPassword = !showPassword"
+            >
+              <span v-if="showPassword">🙈</span>
+              <span v-else>👁️</span>
+            </button>
+          </div>
+
           <button
             type="submit"
             :disabled="!canSend"
@@ -90,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import axios from 'axios'
 
 const isOpen = ref(false)
@@ -104,6 +120,8 @@ const showPulse = ref(true)
 const chatScrollAnchor = ref(null)
 const loading = ref(false)
 const MESSAGE_COOLDOWN = 2000 // 2 seconde entre deux envois
+const showPassword = ref(false)
+const isPasswordStep = computed(() => step.value === 0.5)
 
 let inactivityTimer = null
 const AUTO_CLOSE_DELAY = 2 * 60 * 1000 // 2 minutes
@@ -149,6 +167,38 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+async function typeBotMessage(fullText) {
+  const delay = 20
+  const msg = { sender: 'bot', html: '' }
+  messages.value.push(msg)
+  await nextTick()
+
+  const words = fullText.split(/(\s+)/) // garde les espaces
+  let index = 0
+  const result = []
+
+  for (const word of words) {
+    if (word === '\n') {
+      result.push('<br>')
+    } else if (word.trim() === '') {
+      result.push(word) // espace
+    } else {
+      const spans = word
+        .split('')
+        .map(
+          (char) =>
+            `<span class="drop-letter" style="animation-delay:${index * delay}ms">${char}</span>`,
+        )
+        .join('')
+      result.push(`<span class="word">${spans}</span>`)
+      index += word.length
+    }
+  }
+
+  msg.html = result.join('')
+  scrollToBottom()
+}
+
 let lastMessageTime = 0
 const canSend = ref(true)
 
@@ -162,10 +212,12 @@ async function handleSend() {
     canSend.value = true
   }, MESSAGE_COOLDOWN)
 
-  // Nettoyage de l'entrée côté client (XSS basique)
   const cleanedInput = input.value.replace(/[<>{}[\]\\]/g, '')
+  messages.value.push({
+    sender: 'user',
+    text: step.value === 0.5 ? '••••••••' : cleanedInput,
+  })
 
-  messages.value.push({ sender: 'user', text: cleanedInput })
   scrollToBottom()
   resetInactivityTimer()
 
@@ -174,24 +226,34 @@ async function handleSend() {
   const messageText = userInput.toLowerCase()
 
   if (step.value === 0) {
-    try {
-      const res = await axios.post('http://localhost:8000/api/v1/chatbot/check', {
-        matricule: userInput,
-      })
+    matricule.value = userInput
+    await typeBotMessage('Merci. Quel est ton mot de passe ?')
+    step.value = 0.5
+    return
+  }
 
-      student.value = { id: res.data.id, matricule: userInput }
-      matricule.value = userInput
-      step.value = 1
-      messages.value.push({
-        sender: 'bot',
-        text: `Bonjour ${res.data.prenom} ! Veux-tu voir ton "profil" ou tes "résultats" ?`,
+  if (step.value === 0.5) {
+    try {
+      const res = await axios.post('http://localhost:8000/api/v1/chatbot/login', {
+        matricule: matricule.value,
+        password: userInput,
       })
-    } catch {
-      messages.value.push({ sender: 'bot', text: 'Matricule introuvable. Réessaie.' })
+      student.value = { id: res.data.id, matricule: res.data.matricule }
+      step.value = 1
+      await typeBotMessage(
+        `Bonjour ${res.data.prenom} ! Veux-tu voir ton "profil" ou tes "résultats" ?`,
+      )
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      await typeBotMessage('Échec de connexion. Vérifie ton matricule et ton mot de passe.')
+      step.value = 0
+      matricule.value = ''
     }
     scrollToBottom()
-    resetInactivityTimer()
-  } else if (step.value >= 1) {
+    return
+  }
+
+  if (step.value >= 1) {
     if (messageText.includes('profil')) {
       loading.value = true
       const start = Date.now()
@@ -207,20 +269,15 @@ async function handleSend() {
         await wait(Math.max(1000 - elapsed, 0))
         loading.value = false
 
-        messages.value.push({
-          sender: 'bot',
-          text: `Nom : ${s.nom}\nPrénom : ${s.prenom}\nSexe : ${s.sexe}\nMatricule : ${s.matricule}\nNiveau : ${s.niveau ?? 'Non spécifié'}`,
-        })
-        messages.value.push({
-          sender: 'bot',
-          text: 'Tu peux taper "résultats" ou "fermer".',
-        })
+        await typeBotMessage(
+          `Nom : ${s.nom}\nPrénom : ${s.prenom}\nSexe : ${s.sexe}\nMatricule : ${s.matricule}\nNiveau : ${s.niveau ?? 'Non spécifié'}`,
+        )
+        await typeBotMessage('Tu peux taper "résultats" ou "fermer".')
       } catch {
         loading.value = false
-        messages.value.push({ sender: 'bot', text: 'Erreur lors du chargement du profil.' })
+        await typeBotMessage('Erreur lors du chargement du profil.')
       }
       scrollToBottom()
-      resetInactivityTimer()
     } else if (messageText.includes('résultats')) {
       loading.value = true
       const start = Date.now()
@@ -242,33 +299,25 @@ async function handleSend() {
           for (const ec of ue.ecs) {
             ueText += `  - ${ec.ec_nom} : ${ec.note} (${ec.decision})\n`
           }
-          messages.value.push({ sender: 'bot', text: ueText })
+          await typeBotMessage(ueText)
         }
 
         if (res.data.average !== null) {
-          messages.value.push({
-            sender: 'bot',
-            text: `Moyenne pondérée : ${res.data.average}`,
-          })
+          await typeBotMessage(`Moyenne pondérée : ${res.data.average}`)
         }
 
-        messages.value.push({
-          sender: 'bot',
-          text: 'Tu peux taper "profil" ou "fermer".',
-        })
+        await typeBotMessage('Tu peux taper "profil" ou "fermer".')
       } catch {
         loading.value = false
-        messages.value.push({ sender: 'bot', text: 'Erreur lors du chargement des résultats.' })
+        await typeBotMessage('Erreur lors du chargement des résultats.')
       }
       scrollToBottom()
-      resetInactivityTimer()
     } else if (messageText.includes('fermer')) {
       closeChat()
     } else {
-      messages.value.push({
-        sender: 'bot',
-        text: 'Je n’ai pas compris. Tu peux taper :\n- "profil" pour voir ton profil\n- "résultats" pour voir tes notes\n- "fermer" pour quitter',
-      })
+      await typeBotMessage(
+        'Je n’ai pas compris. Tu peux taper :\n- "profil" pour voir ton profil\n- "résultats" pour voir tes notes\n- "fermer" pour quitter',
+      )
       scrollToBottom()
       resetInactivityTimer()
     }
@@ -276,7 +325,7 @@ async function handleSend() {
 }
 </script>
 
-<style scoped>
+<style>
 .chatbot-button {
   bottom: 1.5rem;
   right: 1.5rem;
@@ -375,5 +424,43 @@ async function handleSend() {
   50% {
     transform: translateY(-4px);
   }
+}
+
+@keyframes drop-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.drop-letter {
+  display: inline-block;
+  opacity: 0;
+  animation: drop-fade 0.3s ease forwards;
+  white-space: pre;
+  word-break: break-word;
+}
+
+.message-placeholder {
+  min-height: 1rem;
+  display: inline-block;
+}
+
+/* Empêche la coupure des mots inappropriée */
+div[innerHTML],
+.bot-html-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+}
+
+.word {
+  display: inline-block;
+  white-space: nowrap;
 }
 </style>

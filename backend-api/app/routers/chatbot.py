@@ -8,6 +8,9 @@ from app.schemas.result import StudentResultsResponse
 from app.utils.result_formatter import get_results_for_student
 from app.schemas.student import StudentProfileResponse
 from app.schemas.chatbot import MatriculeRequest
+from app.models.user import User
+from app.core.security import verify_password
+from app.schemas.chatbot import ChatbotLoginRequest
 
 router = APIRouter(prefix="/api/v1/chatbot", tags=["Chatbot"])
 
@@ -56,3 +59,27 @@ def get_student_profile(student_id: int, db: Session = Depends(get_db)):
 def get_student_results(student_id: int, db: Session = Depends(get_db)):
     return get_results_for_student(student_id, db)
 
+
+@router.post("/login")
+def chatbot_login(data: ChatbotLoginRequest, db: Session = Depends(get_db)):
+    # Étape 1 : Vérifier l'étudiant via le matricule
+    student = db.query(Student).filter(Student.matricule == data.matricule).first()
+    if not student:
+        raise HTTPException(status_code=401, detail="Matricule invalide")
+
+    # Étape 2 : Récupérer le compte utilisateur lié
+    user = db.query(User).filter(User.etudiant_id == student.id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Aucun compte utilisateur trouvé pour ce matricule.")
+
+    # Étape 3 : Vérifier le mot de passe
+    if not verify_password(data.password, user.password):
+        raise HTTPException(status_code=401, detail="Mot de passe incorrect.")
+
+    # Succès
+    return {
+        "id": student.id,
+        "nom": student.nom,
+        "prenom": student.prenom,
+        "matricule": student.matricule,
+    }
